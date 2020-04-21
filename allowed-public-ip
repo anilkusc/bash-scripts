@@ -1,0 +1,14 @@
+ #!/bin/bash
+
+url="www.google.com"
+pattern="172.16"
+netmask=24
+
+for address in $( ip a | grep $pattern | awk '{print $2}' | sed 's/\/$netmask//g' )
+do
+        if [[ $(curl -o /dev/null -s -w "%{http_code}\n" $url --interface $address --max-time 5 ) == 200  ]];then
+            public_ip=$(curl -s ipv4bot.whatismyipaddress.com --interface $address)
+            printf "$public_ip\n"
+        fi
+done
+# it gives allowed public ip for specific url 
