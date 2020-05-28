@@ -1,14 +1,44 @@
- #!/bin/bash
-
-url="www.google.com"
-pattern="172.16"
-netmask=24
-
-for address in $( ip a | grep $pattern | awk '{print $2}' | sed 's/\/$netmask//g' )
+#!/bin/bash
+#set -x
+url="https://www.google.com"
+touch lt5.log
+touch lt15.log
+touch lt25.log
+touch gt25.log
+touch notresponse.log
+for i in {1..100}
 do
-        if [[ $(curl -o /dev/null -s -w "%{http_code}\n" $url --interface $address --max-time 5 ) == 200  ]];then
-            public_ip=$(curl -s ipv4bot.whatismyipaddress.com --interface $address)
-            printf "$public_ip\n"
-        fi
+echo "%"$i
+for address in $( ip a | grep 172.16 | awk '{print $2}' | sed 's/\/24//g' )
+do
+response=($(curl -o /dev/null -s -w '%{http_code}\n%{time_total}' $url --interface $address --connect-timeout 60 -m 60))
+code=$(echo ${response[0]} | awk '{print $1}')
+time=$(echo ${response[1]} | awk -F '.' '{print $1}')
+time_long=$(echo ${response[1]})
+if [[ $code == "200" ]];then
+
+if [[ $time -lt 5 ]];then
+echo $address " " $time_long " " $code >> lt5.log
+elif [[ $time -lt 15 ]];then
+echo $address " " $time_long " " $code >> lt15.log
+elif [[ $time -lt 25 ]];then
+echo $address " " $time_long " " $code >> lt25.log
+elif [[ $time -gt 25 ]];then
+echo $address " " $time_long " " $code >> gt25.log
+fi
+else
+echo $address" : "$code >> notresponse.log
+fi
 done
-# it gives allowed public ip for specific url 
+done
+
+for address in $( ip a | grep 172.16 | awk '{print $2}' | sed 's/\/24//g' )
+do
+lt5=$(cat lt5.log | grep $address | wc -l)
+lt15=$(cat lt15.log | grep $address | wc -l)
+lt25=$(cat lt15.log | grep $address | wc -l)
+gt25=$(cat gt25.log | grep $address | wc -l)
+echo $address " " $lt5 " " $lt15 " " $lt25 " " $gt25
+done
+#rm *.log
+#set +x
