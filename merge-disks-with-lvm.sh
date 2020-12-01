@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 fixed_size=$1 # 2048G/2047G
-echo "Volume Oluşturma İçin Kullanacağınız Diskleri Her Seferinde 1 Tane Olacak Şekilde Giriniz(ör. /dev/sdb)"
+echo "Please enter the Disks You Will Use for Volume Creation, Once At A Time(eg. /dev/sdb)"
 declare -a disks
 i=0
 while true
@@ -9,14 +9,14 @@ do
     echo "----------------------------------------------"
     fdisk -l | grep "Disk /dev/" | grep -v loop | grep -v mapper
     echo "----------------------------------------------"
-	echo "Lütfen "$i". Diski Giriniz"
+	echo "Please Enter The Disk "$i": "
     read disk
     
     for control in "${disks[@]}"
     do
         if [[ $control == $disk ]];then
-            echo "Bu disk için 2 kere giriş yapılmıştır:"$disk
-            echo "Lütfen tekrar başlatıp her disk için 1 giriş yapınız."
+            echo "There are duplicate entries for this disk:"$disk
+            echo "Please restart the script and input one entry for each disk."
             exit 1
         fi
     done
@@ -24,12 +24,12 @@ do
     disks+=($disk)
     disk_control=$( fdisk -l | grep "Disk "$disk)
     if [[ $disk_control == "" ]];then
-        echo "Bu disk var olmadığından programdan çıkılıyor:"$disk
-        echo "Lütfen tekrar başlatıp girdileri düzeltiniz."
+        echo "Program is exiting.There is no such a disk :"$disk
+        echo "Please restart the script and correct entries."
         exit 1
     fi
 
-    echo "Eklemeye devam edilsin mi ?(y:n)"
+    echo "Continue to add disk?(y:n)"
     read answer
 
     if [[ $answer == "n" ]];then
@@ -45,10 +45,10 @@ do
     echo "---------"
 done
 
-echo "Yukardaki diskler tek bir logical volume altında birleştirilecektir.Kabul ediyor musunuz ?(y:n)"
+echo "Below disks are merge into one logival volume.Are you sure ?(y:n)"
 read answer
 if [[ $answer != "y" ]];then
-echo "İptal Ediliyor."
+echo "Cancelling.."
 exit 1
 fi
 
@@ -115,4 +115,4 @@ mount /dev/vdisk/volume /mnt/storage
 done
 
 fdisk -l
-echo "Birleştirme işlemi tamamlandı."
+echo "Done."
