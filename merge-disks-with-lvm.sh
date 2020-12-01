@@ -100,10 +100,7 @@ vgextend vdisk $disk_name
 umount /dev/vdisk/volume
 
 if [[ $fixed_size == "" ]];then
-size=$(fdisk -l | grep $disk_name | awk '{print $5}' |  sed 's/[A-Za-z]*//g')
-letter=$(fdisk -l | grep $disk_name | awk '{print $5}' |  sed 's/[A-Za-z]*//g')
-let "size=size-1"
-lvextend -L+"$size"G /dev/vdisk/volume
+lvextend -l +100%FREE /dev/vdisk/volume
 else
 lvextend -L+$fixed_size /dev/vdisk/volume
 fi
