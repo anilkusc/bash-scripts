@@ -44,5 +44,5 @@ case "$o" in
         echo "wrong operator"
    ;;
 esac
-
+#echo last returned
 echo $?
